@@ -111,10 +111,8 @@ public class TrackEditor : MonoBehaviour {
 
         Debug.Log("Seek " + position);
 
-        if (_currentSong != null)
+        if (_currentSong != null && position < 1)
             _audio.time = position * _currentSong.length;
-        else
-            CurrentSongSlider.value = 0;
     }
 
     private IEnumerator SongControlLoop() {
