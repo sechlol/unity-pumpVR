@@ -1,5 +1,6 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
+using System;
 
 public class TrackVisualizer : MonoBehaviour {
 
@@ -12,4 +13,7 @@ public class TrackVisualizer : MonoBehaviour {
 	void Update () {
 	
 	}
+
+    public void Init(EditorState _status) {
+    }
 }

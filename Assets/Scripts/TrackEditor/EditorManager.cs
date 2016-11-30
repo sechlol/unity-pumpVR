@@ -21,29 +21,39 @@ public class EditorManager : MonoBehaviour {
     [SerializeField] InputField CurrentSongBeat;
     [SerializeField] Button GoToBeatBtn;
     [SerializeField] Dialog DialogWindow;
-
+    [SerializeField] Button SaveBtn;
 
     private List<string> _songList;
     private AudioSource _audio;
     private AudioClip _currentSong;
-    private Track _currentTrack;
     private Coroutine _songControlLoop;
     private UISliderHandler _sliderHandler;
+    private EditorState _state;
     private TrackEditor _editor;
+    private TrackVisualizer _visualizer;
 
 	void Start () {
         _songList = GetSongList();
         _audio = Camera.main.GetComponent<AudioSource>();
         _sliderHandler = CurrentSongSlider.GetComponent<UISliderHandler>();
-        _editor = GetComponent<TrackEditor>();
+
+        _state = new EditorState();
+        _editor = GetComponentInChildren<TrackEditor>();
+        _visualizer = GetComponentInChildren<TrackVisualizer>();
+
+        _editor.Init(_state);
+        _visualizer.Init(_state);
 
         RenderUI();
     }
 
     private void RenderUI() {
         ResetSongPlayer();
+
         _sliderHandler.OnInteract += SliderSeek;
+
         GoToBeatBtn.onClick.AddListener(BeatSeek);
+        SaveBtn.onClick.AddListener(SaveCurrentTrack);
 
         foreach (var song in _songList) {
             string ctx = song;
@@ -54,6 +64,12 @@ public class EditorManager : MonoBehaviour {
         }
 
         LoadSong(_songList[0]);
+    }
+
+    private void SaveCurrentTrack() {
+        string json = JsonUtility.ToJson(_state.track);
+        File.WriteAllText(TRACKS_PATH + "/" + name + ".json", json);
+        Debug.Log("Song saved to: " + TRACKS_PATH + "/" + name + ".json");
     }
 
     private List<string> GetSongList() {
@@ -74,28 +90,23 @@ public class EditorManager : MonoBehaviour {
         _currentSong = Resources.Load<AudioClip>("Songs/"+ songName);
         TextAsset track = Resources.Load<TextAsset>("Tracks/" + songName);
 
-        if (track == null)
-            DialogWindow.Show((bpm) => {
-                NewTrack(songName, _currentSong.length, bpm);
-                CurrentSongBPM.text = bpm.ToString();
-            });
+        if (track != null)
+            LoadTrack(JsonUtility.FromJson<Track>(track.text));
         else {
-            _currentTrack = JsonUtility.FromJson<Track>(track.text);
-            CurrentSongBPM.text = _currentTrack.BPM.ToString();
+            DialogWindow.Show((bpm) => {
+                LoadTrack(_editor.NewTrack(name, bpm, _currentSong.length));
+                SaveCurrentTrack();
+            });
         }
 
         _audio.clip = _currentSong;
-        CurrentSongNameText.text = songName;
     }
 
-    private void NewTrack(string name, float length, int bpm) {
+    private void LoadTrack(Track track) {
+        _state.track = track;
+        CurrentSongBPM.text = track.BPM.ToString();
+        CurrentSongNameText.text = track.songName;
 
-        _currentTrack = _editor.NewTrack(name, bpm, length);
-
-        string json = JsonUtility.ToJson(_currentTrack);
-        File.WriteAllText(TRACKS_PATH+"/"+name+".json", json);
-
-        Debug.Log("Song saved to: " + TRACKS_PATH + "/" + name + ".json");
     }
 
     private void ResetSongPlayer() {
@@ -139,13 +150,14 @@ public class EditorManager : MonoBehaviour {
     private void SliderSeek(float position) {
 
         if (_currentSong != null && position < 1) {  
-            _audio.time = position * _currentSong.length;
-            int min = (int)_audio.time / 60;
-            int sec = (int)_audio.time % 60;
-            int beat = _currentTrack.TimeToBeat(_audio.time);
+            _audio.time    = position * _currentSong.length;
+            _state.time    = _audio.time;
+
+            int min = (int)_state.time / 60;
+            int sec = (int)_state.time % 60;
 
             CurrentSongTimer.text = string.Format("{0}:{1:00}", min, sec);
-            CurrentSongBeat.text = beat.ToString();
+            CurrentSongBeat.text = _state.beat.ToString();
         }
     }
 
@@ -153,28 +165,28 @@ public class EditorManager : MonoBehaviour {
         if (_currentSong == null)
             return;
 
-        int beat = int.Parse(CurrentSongBeat.text);
-        _audio.time = _currentTrack.BeatToTime(beat);
+        _state.beat = int.Parse(CurrentSongBeat.text);
+        _audio.time = _state.time;
         UpdateTime();
     }
 
     private IEnumerator SongControlLoop() {
         WaitForEndOfFrame wait = new WaitForEndOfFrame();
         while (true) {
+            _state.time = _audio.time;
             UpdateTime();
             yield return wait;
         }
     }
 
     private void UpdateTime() {
-        int min, sec, beat;
+        int min, sec;
 
-        min = (int)_audio.time / 60;
-        sec = (int)_audio.time % 60;
-        beat = _currentTrack.TimeToBeat(_audio.time);
+        min = (int)_state.time / 60;
+        sec = (int)_state.time % 60;
 
         CurrentSongSlider.value = _audio.time / _currentSong.length;
         CurrentSongTimer.text = string.Format("{0}:{1:00}", min, sec);
-        CurrentSongBeat.text = beat.ToString();
+        CurrentSongBeat.text = _state.beat.ToString();
     }
 }
