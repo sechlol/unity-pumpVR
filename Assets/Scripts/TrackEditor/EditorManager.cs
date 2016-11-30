@@ -68,8 +68,8 @@ public class EditorManager : MonoBehaviour {
 
     private void SaveCurrentTrack() {
         string json = JsonUtility.ToJson(_state.track);
-        File.WriteAllText(TRACKS_PATH + "/" + name + ".json", json);
-        Debug.Log("Song saved to: " + TRACKS_PATH + "/" + name + ".json");
+        File.WriteAllText(TRACKS_PATH + "/" + _state.track.songName + ".json", json);
+        Debug.Log("Song saved to: " + TRACKS_PATH + "/" + _state.track.songName + ".json");
     }
 
     private List<string> GetSongList() {
@@ -94,7 +94,7 @@ public class EditorManager : MonoBehaviour {
             LoadTrack(JsonUtility.FromJson<Track>(track.text));
         else {
             DialogWindow.Show((bpm) => {
-                LoadTrack(_editor.NewTrack(name, bpm, _currentSong.length));
+                LoadTrack(_editor.NewTrack(songName, bpm, _currentSong.length));
                 SaveCurrentTrack();
             });
         }
