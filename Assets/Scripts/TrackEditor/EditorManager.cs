@@ -11,16 +11,21 @@ public class EditorManager : MonoBehaviour {
     public static string SONGS_PATH { get { return Application.dataPath + SONGS_FOLDER; } }
     public static string TRACKS_PATH { get { return Application.dataPath + TRACKS_FOLDER; } }
 
-    [SerializeField] Button SongEntryPrefab;
+    
     [SerializeField] Transform SongsScrollView;
+
     [SerializeField] Text CurrentSongNameText;
     [SerializeField] Text CurrentSongTimer;
     [SerializeField] Text CurrentSongBPM;
-    [SerializeField] Button PlayPauseBtn;
+    
     [SerializeField] Slider CurrentSongSlider;
     [SerializeField] InputField CurrentSongBeat;
-    [SerializeField] Button GoToBeatBtn;
     [SerializeField] Dialog DialogWindow;
+
+    [SerializeField] Button SongEntryPrefab;
+    [SerializeField] Button PlayPauseBtn;
+    [SerializeField] Button GoToBeatBtn;
+    [SerializeField] Button ClearBtn;
     [SerializeField] Button SaveBtn;
 
     private List<string> _songList;
@@ -36,13 +41,11 @@ public class EditorManager : MonoBehaviour {
         _songList = GetSongList();
         _audio = Camera.main.GetComponent<AudioSource>();
         _sliderHandler = CurrentSongSlider.GetComponent<UISliderHandler>();
+        CurrentSongBeat.GetComponent<UIWheelScrollerInput>().OnUpdate += BeatSeek;
 
         _state = new EditorState();
         _editor = GetComponentInChildren<TrackEditor>();
         _visualizer = GetComponentInChildren<TrackVisualizer>();
-
-        _editor.Init(_state);
-        _visualizer.Init(_state);
 
         RenderUI();
     }
@@ -54,6 +57,7 @@ public class EditorManager : MonoBehaviour {
 
         GoToBeatBtn.onClick.AddListener(BeatSeek);
         SaveBtn.onClick.AddListener(SaveCurrentTrack);
+        ClearBtn.onClick.AddListener(ClearCurrentTrack);
 
         foreach (var song in _songList) {
             string ctx = song;
@@ -70,6 +74,12 @@ public class EditorManager : MonoBehaviour {
         string json = JsonUtility.ToJson(_state.track);
         File.WriteAllText(TRACKS_PATH + "/" + _state.track.songName + ".json", json);
         Debug.Log("Song saved to: " + TRACKS_PATH + "/" + _state.track.songName + ".json");
+    }
+
+    private void ClearCurrentTrack() {
+        foreach (var list in _state.track.moveList)
+            list.Group.Clear();
+        _state.NotifyChange(0);
     }
 
     private List<string> GetSongList() {
@@ -107,6 +117,8 @@ public class EditorManager : MonoBehaviour {
         CurrentSongBPM.text = track.BPM.ToString();
         CurrentSongNameText.text = track.songName;
 
+        _editor.Init(_state);
+        _visualizer.Init(_state);
     }
 
     private void ResetSongPlayer() {

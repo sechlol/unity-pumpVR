@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum MoveType { LEFT, RIGHT, BOTH, CONTINUOUS }
+public enum MoveType { LEFT, RIGHT, HEAD, BOTH, CONTINUOUS }
 
 [Serializable]
 public class Track {
@@ -27,6 +27,10 @@ public class Track {
 [Serializable]
 public class MoveGroup {
     public List<Move> Group;
+
+    public MoveGroup() {
+        Group = new List<Move>();
+    }
 }
  
 [Serializable]
