@@ -50,9 +50,9 @@ public class MoveTile : MonoBehaviour {
     private Color ColorByType(MoveType t) {
         switch (t) {
             case MoveType.LEFT:
-                return Color.red;
-            case MoveType.RIGHT:
                 return Color.blue;
+            case MoveType.RIGHT:
+                return Color.red;
             case MoveType.HEAD:
                 return Color.yellow;
             default:

@@ -37,7 +37,7 @@ public class EditorManager : MonoBehaviour {
     private TrackEditor _editor;
     private TrackVisualizer _visualizer;
 
-	void Start () {
+	void Awake () {
         _songList = GetSongList();
         _audio = Camera.main.GetComponent<AudioSource>();
         _sliderHandler = CurrentSongSlider.GetComponent<UISliderHandler>();
@@ -48,6 +48,10 @@ public class EditorManager : MonoBehaviour {
         _visualizer = GetComponentInChildren<TrackVisualizer>();
 
         RenderUI();
+    }
+
+    public EditorState GetState() {
+        return _state;
     }
 
     private void RenderUI() {

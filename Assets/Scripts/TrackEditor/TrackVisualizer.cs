@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -12,6 +13,7 @@ public class TrackVisualizer : MonoBehaviour {
     private HashSet<Move> _tempMoves;
     private Dictionary<Move, MoveTile> _tiles;
     private ObjectPool _pool;
+    
 
     public void Init(EditorState state) {
         _state = state;
@@ -21,6 +23,18 @@ public class TrackVisualizer : MonoBehaviour {
         _tempMoves = new HashSet<Move>();
 
         _state.OnTrackEdit += (int groupIndex) => UpdateView();
+        _state.OnTrackLoad += ClearView;
+    }
+
+    private void ClearView(Track newTrack) {
+        foreach(var kv in _tiles) {
+            kv.Value.Delete();
+        }
+
+        _prevShown.Clear();
+        _tempMoves.Clear();
+        _tiles.Clear();
+        _lastBeatUpdate = -1;
     }
 
     void Update() {

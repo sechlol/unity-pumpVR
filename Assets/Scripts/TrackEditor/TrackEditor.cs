@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -7,8 +6,6 @@ public class TrackEditor : MonoBehaviour {
 
     [SerializeField] int TicksPerBeat = 4;
     [SerializeField] float OverlapBoundSize = 0.05f;
-
-    public MoveType Brush { get; set; }
 
     private EditorState _state;
     private Vector2 _rPosition;
@@ -40,7 +37,7 @@ public class TrackEditor : MonoBehaviour {
         
         //Left Click: add move
         if (Input.GetMouseButton(0)) {
-            _state.AddMove(localClick, Brush);
+            _state.AddMove(localClick, _state.Brush);
         }
         //Right Click: delete move
         else if (Input.GetMouseButton(1)) {
@@ -55,7 +52,7 @@ public class TrackEditor : MonoBehaviour {
         
         //Left Click: add move if not overlapping
         if (Input.GetMouseButton(0) && GetOverlappingMove(localClick) == -1) {
-            _state.AddMove(localClick, Brush);
+            _state.AddMove(localClick, _state.Brush);
         }
     }
 

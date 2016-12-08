@@ -3,15 +3,18 @@ using UnityEngine;
 
 public delegate void TrackLoad(Track newTrack);
 public delegate void TrackEdit(int groupIndex);
+public delegate void CursorChange(MoveType cursor);
 
 public class EditorState {
 
     private int _b;
     private float _t;
+    private MoveType _cursorType = MoveType.RIGHT;
     private Track _track;
 
     public event TrackLoad OnTrackLoad;
     public event TrackEdit OnTrackEdit;
+    public event CursorChange OnBrushChange;
 
     public List<Move> CurrentMoves {
         get { return _track.moveList[_b].Group; }
@@ -42,6 +45,15 @@ public class EditorState {
         set {
             _t = value;
             _b = track.TimeToBeat(_t);
+        }
+    }
+
+    public MoveType Brush {
+        get { return _cursorType; }
+        set {
+            _cursorType = value;
+            if (OnBrushChange != null)
+                OnBrushChange(_cursorType);
         }
     }
 
